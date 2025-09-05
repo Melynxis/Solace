@@ -1,0 +1,46 @@
+# /home/melynxis/solace/infra/exporters.compose.yml
+name: solace-exporters
+
+services:
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: solace_node_exporter
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    command:
+      - "--collector.systemd"
+      - "--collector.processes"
+
+  mysqld_exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: solace_mysqld_exporter
+    restart: unless-stopped
+    command: ["--config.my-cnf=/etc/mysqld_exporter.my.cnf"]
+    ports: ["9104:9104"]
+    volumes:
+      - /home/melynxis/solace/infra/mysqld_exporter.my.cnf:/etc/mysqld_exporter.my.cnf:ro
+    networks:
+      - core
+
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: solace_redis_exporter
+    restart: unless-stopped
+    ports: ["9121:9121"]
+    environment:
+      REDIS_ADDR: "redis://solace_redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    networks:
+      - core
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: solace_blackbox_exporter
+    restart: unless-stopped
+    ports: ["9115:9115"]
+
+networks:
+  core:
+    external: true
+    name: solace-core_default

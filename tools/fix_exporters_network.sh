@@ -1,0 +1,75 @@
+# /home/melynxis/solace/tools/fix_exporters_network.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+FILE="/home/melynxis/solace/infra/exporters.compose.yml"
+
+backup="${FILE}.bak.$(date +%s)"
+cp -a "$FILE" "$backup"
+echo "Backed up to $backup"
+
+# 1) Ensure external network: solace-core_default
+if ! grep -q '^networks:' "$FILE"; then
+  cat >> "$FILE" <<'YAML'
+
+networks:
+  core:
+    external: true
+    name: solace-core_default
+YAML
+else
+  # If networks exist, ensure the 'core' external def is present
+  awk '
+    BEGIN{in_n=0; core=0}
+    /^networks:/ {in_n=1}
+    in_n && /^  core:/ {core=1}
+    {print}
+    END{
+      if(!core){
+        print "  core:"
+        print "    external: true"
+        print "    name: solace-core_default"
+      }
+    }
+  ' "$FILE" > "${FILE}.tmp" && mv "${FILE}.tmp" "$FILE"
+fi
+
+# 2) Attach mysqld_exporter and redis_exporter to that network
+python3 - "$FILE" <<'PY'
+import re, sys
+p=sys.argv[1]
+t=open(p).read()
+
+def attach(service):
+    pat = rf'(\n  {service}:\n(?:.*\n)*?)(?=\n  \w|$)'
+    m=re.search(pat, t)
+    if not m: return t
+    block=m.group(1)
+    if 'networks:' not in block:
+        block = block + "    networks:\n      - core\n"
+    elif '- core' not in block:
+        block = re.sub(r'(    networks:\n)', r'\1      - core\n', block)
+    return t[:m.start(1)] + block + t[m.end(1):]
+
+t = attach("mysqld_exporter")
+t = attach("redis_exporter")
+open(p,"w").write(t)
+PY
+
+# 3) Point to container DNS names instead of 127.0.0.1
+# - MySQL: solace_mysql:3306
+# - Redis: solace_redis:6379
+sed -i 's#DATA_SOURCE_NAME: "exporter:.*@(127\.0\.0\.1:3306)/"#DATA_SOURCE_NAME: "exporter:${MYSQL_EXPORTER_PASSWORD:-exporter_pwd}@(solace_mysql:3306)/"#' "$FILE"
+sed -i 's#REDIS_ADDR: "redis://127\.0\.0\.1:6379"#REDIS_ADDR: "redis://solace_redis:6379"#' "$FILE"
+
+echo "Patch complete."
+echo "Restarting exporters..."
+docker compose --project-directory "/home/melynxis/solace" --env-file "/home/melynxis/solace/.env" -f "$FILE" up -d
+
+echo "Waiting 5s, then checking mysqld_exporter locally..."
+sleep 5
+curl -fsS http://127.0.0.1:9104/metrics | head -n 5 || {
+  echo "mysqld_exporter still not ready; run: docker logs --tail=200 solace_mysqld_exporter"
+  exit 1
+}
+echo "✅ mysqld_exporter responding."

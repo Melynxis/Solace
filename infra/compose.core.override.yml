@@ -1,0 +1,16 @@
+services:
+  mysql:
+    volumes:
+      - /var/lib/mysql:/var/lib/mysql
+
+  weaviate:
+    volumes:
+      - /var/lib/weaviate:/var/lib/weaviate
+    environment:
+      # Force standalone (no raft/cluster joins)
+      DISABLE_CLUSTERING: "true"
+
+  redis:
+    command: ["redis-server", "--appendonly", "no", "--save", "", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - /home/melynxis/run/redis:/data

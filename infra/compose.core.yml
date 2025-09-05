@@ -1,0 +1,51 @@
+# /home/melynxis/solace/infra/compose.core.yml
+# Compose v3 syntax; the top-level "version" key is intentionally omitted to avoid the deprecation warning.
+
+name: solace-core
+
+services:
+
+  redis:
+    image: redis:7
+    container_name: solace_redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+ 
+  weaviate:
+    image: semitechnologies/weaviate:1.32.5
+    container_name: solace_weaviate
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # hard single-node, no join targets:
+      CLUSTER_HOSTNAME: "node1"
+      # storage:
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      # behavior:
+      DEFAULT_VECTORIZER_MODULE: "none"
+      QUERY_DEFAULTS_LIMIT: "25"
+      AUTOSCHEMA_ENABLED: "true"
+      # auth — we’ll use Bearer consistently:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
+      AUTHENTICATION_APIKEY_ENABLED: "true"
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: "${WEAVIATE_APIKEY}"
+      AUTHENTICATION_APIKEY_USERS: "solace"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/v1/.well-known/ready || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+volumes:
+  mysql_data:
+  weaviate_data:

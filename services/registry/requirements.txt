@@ -1,0 +1,8 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+SQLAlchemy==2.0.34
+PyMySQL==1.1.1
+prometheus_client==0.20.0
+cryptography>=42,<44
+PyMySQL[crypto]==1.1.1
+

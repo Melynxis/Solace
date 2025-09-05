@@ -1,0 +1,5 @@
+[client]
+user=exporter
+password=D6zVRJEGsjc5
+host=solace_mysql
+port=3306

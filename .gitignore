@@ -1,0 +1,65 @@
+# Solace Core .gitignore — tailored for your tree
+
+# Python artifacts
+*.pyc
+*.pyo
+__pycache__/
+*.swp
+
+# Virtualenvs (ignore venvs in any subdir)
+.venv/
+venv/
+env/
+
+# Secrets and local config
+.env
+.env.*
+*.bak
+*.good.*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Docker/infra volumes
+infra/mysql_data/
+infra/weaviate_data/
+
+# Compose/infra backup files
+infra/*.bak*
+infra/exporters.compose.yml.bak*
+infra/compose.core.yml.bak*
+infra/compose.override.yml.bak*
+infra/compose.weaviate.override.yml.bak*
+infra/*.good.*
+
+# Snapshots, temp, legacy, lost+found
+run/
+tmp/
+lost+found/
+legacy/
+
+# Ignore test results, cache, and orchestration scratch
+__test__/
+.cache/
+*.tmp
+
+# Node/JS artifacts (Ghostpaw Dashboard, if applicable)
+apps/ghostpaw-dashboard/node_modules/
+apps/ghostpaw-dashboard/.next/
+apps/ghostpaw-dashboard/.env.local
+
+# Misc
+*.pid
+*.lock
+
+# Allow .gitkeep everywhere
+!.gitkeep
