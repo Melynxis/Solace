@@ -1,0 +1,16 @@
+{
+  "id": "autogen",
+  "name": "",
+  "type": "lore|hybrid|mechanical",
+  "description": "",
+  "personality": {},
+  "domain": "",
+  "alignment_checks": [],
+  "relationships": [],
+  "functions": [],
+  "integrations": [],
+  "active_hours": { "start": "08:00", "end": "02:00" },
+  "status": "draft",
+  "createdAt": "",
+  "updatedAt": ""
+}

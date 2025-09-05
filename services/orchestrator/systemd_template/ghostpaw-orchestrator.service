@@ -1,0 +1,13 @@
+[Unit]
+Description=Ghostpaw Orchestrator Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/melynxis/solace/services/orchestrator
+ExecStart=/home/melynxis/solace/services/orchestrator/dev.sh
+Restart=always
+User=melynxis
+
+[Install]
+WantedBy=multi-user.target
