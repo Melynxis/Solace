@@ -63,3 +63,6 @@ apps/ghostpaw-dashboard/.env.local
 
 # Allow .gitkeep everywhere
 !.gitkeep
+
+#Tools
+tools/
