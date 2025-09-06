@@ -65,4 +65,4 @@ apps/ghostpaw-dashboard/.env.local
 !.gitkeep
 
 #Tools
-tools/
+*package-lock*
