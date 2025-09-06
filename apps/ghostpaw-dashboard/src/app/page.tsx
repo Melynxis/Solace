@@ -8,7 +8,8 @@ const REGISTRY_API = process.env.NEXT_PUBLIC_REGISTRY_API || "http://localhost:8
 async function fetchSpirits() {
   const resp = await fetch(`${REGISTRY_API}/spirits`);
   if (!resp.ok) return [];
-  return await resp.json();
+  const data = await resp.json();
+  return data.data ?? [];
 }
 
 const tabs = [
